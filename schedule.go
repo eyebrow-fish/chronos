@@ -18,14 +18,7 @@ func NewSchedule(cron string) (*Schedule, error) {
 	cronUnit := func(s string) (*ScheduleUnit, error) {
 		if s == "*" {
 			return &ScheduleUnit{}, nil
-		} else if strings.Contains(s, "/") {
-			num := s[2:]
-			if v, err := strconv.Atoi(num); err != nil {
-				return nil, err
-			} else {
-				return &ScheduleUnit{UnitType: Recur, Value: []uint8{uint8(v)}}, nil
-			}
-		} else {
+		} else if strings.Contains(s, ",") {
 			var values []uint8
 			for _, v := range strings.Split(s, ",") {
 				if i, err := strconv.Atoi(v); err != nil {
@@ -34,13 +27,22 @@ func NewSchedule(cron string) (*Schedule, error) {
 					values = append(values, uint8(i))
 				}
 			}
+			return &ScheduleUnit{UnitType: Multi, Value: values}, nil
+		} else {
+			var num string
 			var ut UnitType
-			if len(values) > 1 {
-				ut = Multi
+			if strings.Contains(s, "/") {
+				num = s[2:]
+				ut = Recur
 			} else {
+				num = s
 				ut = Exact
 			}
-			return &ScheduleUnit{UnitType: ut, Value: values}, nil
+			if v, err := strconv.Atoi(num); err != nil {
+				return nil, err
+			} else {
+				return &ScheduleUnit{UnitType: ut, Value: []uint8{uint8(v)}}, nil
+			}
 		}
 	}
 	units := strings.Split(cron, " ")
@@ -77,14 +79,19 @@ func (s Schedule) String() string {
 	cronVal := func(u ScheduleUnit) string {
 		if u.Value == nil {
 			return "*"
-		} else if u.UnitType != Recur {
-			var ss []string
-			for _, v := range u.Value {
-				ss = append(ss, strconv.Itoa(int(v)))
-			}
-			return strings.Join(ss, ",")
 		} else {
-			return "*/" + strconv.Itoa(int(u.Value[0]))
+			switch u.UnitType {
+			case Multi:
+				var ss []string
+				for _, v := range u.Value {
+					ss = append(ss, strconv.Itoa(int(v)))
+				}
+				return strings.Join(ss, ",")
+			case Recur:
+				return "*/" + strconv.Itoa(int(u.Value[0]))
+			default:
+				return strconv.Itoa(int(u.Value[0]))
+			}
 		}
 	}
 	return fmt.Sprintf(
@@ -106,12 +113,12 @@ func ExactUnit(x uint8) ScheduleUnit {
 	return ScheduleUnit{UnitType: Exact, Value: []uint8{x}}
 }
 
-func MultiUnit(x ...uint8) ScheduleUnit {
-	return ScheduleUnit{UnitType: Multi, Value: x}
-}
-
 func RecurUnit(x uint8) ScheduleUnit {
 	return ScheduleUnit{UnitType: Recur, Value: []uint8{x}}
+}
+
+func MultiUnit(x ...uint8) ScheduleUnit {
+	return ScheduleUnit{UnitType: Multi, Value: x}
 }
 
 func NoneUnit() ScheduleUnit {
