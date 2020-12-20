@@ -23,16 +23,24 @@ func NewSchedule(cron string) (*Schedule, error) {
 			if v, err := strconv.Atoi(num); err != nil {
 				return nil, err
 			} else {
-				cast := uint8(v)
-				return &ScheduleUnit{Value: &cast}, nil
+				return &ScheduleUnit{UnitType: Recur, Value: []uint8{uint8(v)}}, nil
 			}
 		} else {
-			if v, err := strconv.Atoi(s); err != nil {
-				return nil, err
-			} else {
-				cast := uint8(v)
-				return &ScheduleUnit{IsExact: true, Value: &cast}, nil
+			var values []uint8
+			for _, v := range strings.Split(s, ",") {
+				if i, err := strconv.Atoi(v); err != nil {
+					return nil, err
+				} else {
+					values = append(values, uint8(i))
+				}
 			}
+			var ut UnitType
+			if len(values) > 1 {
+				ut = Multi
+			} else {
+				ut = Exact
+			}
+			return &ScheduleUnit{UnitType: ut, Value: values}, nil
 		}
 	}
 	units := strings.Split(cron, " ")
@@ -57,11 +65,11 @@ func NewSchedule(cron string) (*Schedule, error) {
 		return nil, err
 	}
 	return &Schedule{
-		Minute: *minute,
-		Hour: *hour,
+		Minute:     *minute,
+		Hour:       *hour,
 		DayOfMonth: *dayOfMonth,
-		Month: *month,
-		DayOfWeek: *dayOfWeek,
+		Month:      *month,
+		DayOfWeek:  *dayOfWeek,
 	}, nil
 }
 
@@ -69,10 +77,14 @@ func (s Schedule) String() string {
 	cronVal := func(u ScheduleUnit) string {
 		if u.Value == nil {
 			return "*"
-		} else if u.IsExact {
-			return strconv.Itoa(int(*u.Value))
+		} else if u.UnitType != Recur {
+			var ss []string
+			for _, v := range u.Value {
+				ss = append(ss, strconv.Itoa(int(v)))
+			}
+			return strings.Join(ss, ",")
 		} else {
-			return "*/" + strconv.Itoa(int(*u.Value))
+			return "*/" + strconv.Itoa(int(u.Value[0]))
 		}
 	}
 	return fmt.Sprintf(
@@ -86,18 +98,30 @@ func (s Schedule) String() string {
 }
 
 type ScheduleUnit struct {
-	IsExact bool
-	Value   *uint8
+	UnitType UnitType
+	Value    []uint8
 }
 
 func ExactUnit(x uint8) ScheduleUnit {
-	return ScheduleUnit{IsExact: true, Value: &x}
+	return ScheduleUnit{UnitType: Exact, Value: []uint8{x}}
+}
+
+func MultiUnit(x ...uint8) ScheduleUnit {
+	return ScheduleUnit{UnitType: Multi, Value: x}
 }
 
 func RecurUnit(x uint8) ScheduleUnit {
-	return ScheduleUnit{Value: &x}
+	return ScheduleUnit{UnitType: Recur, Value: []uint8{x}}
 }
 
 func NoneUnit() ScheduleUnit {
 	return ScheduleUnit{}
 }
+
+type UnitType uint8
+
+const (
+	Exact UnitType = iota
+	Recur
+	Multi
+)

@@ -29,6 +29,7 @@ func TestSchedule_String(t *testing.T) {
 			want: "* * * * *",
 		},
 		{name: "every 10 minutes", schedule: Schedule{Minute: RecurUnit(10)}, want: "*/10 * * * *"},
+		{name: "minute 1 and 2", schedule: Schedule{Minute: MultiUnit(1, 2)}, want: "1,2 * * * *"},
 	}
 	for _, test := range tt {
 		t.Run(test.name, func(t *testing.T) {
@@ -47,6 +48,7 @@ func TestNewSchedule(t *testing.T) {
 		{name: "any", cron: "* * * * *", want: &Schedule{}},
 		{name: "exact minute", cron: "10 * * * *", want: &Schedule{Minute: ExactUnit(10)}},
 		{name: "recurring minute", cron: "*/10 * * * *", want: &Schedule{Minute: RecurUnit(10)}},
+		{name: "multi minute", cron: "1,2,3 * * * *", want: &Schedule{Minute: MultiUnit(1, 2, 3)}},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
