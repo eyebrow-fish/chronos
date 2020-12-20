@@ -10,61 +10,42 @@ type Schedule struct {
 	Hour,
 	DayOfMonth,
 	Month,
-	DayOfWeek *uint8
+	DayOfWeek ScheduleUnit
 }
 
 func (s Schedule) String() string {
+	cronVal := func(u ScheduleUnit) string {
+		if u.value == nil {
+			return "*"
+		} else if u.IsExact {
+			return strconv.Itoa(int(*u.value))
+		} else {
+			return "*/" + strconv.Itoa(int(*u.value))
+		}
+	}
 	return fmt.Sprintf(
 		"%s %s %s %s %s",
-		cronNum(s.Minute),
-		cronNum(s.Hour),
-		cronNum(s.DayOfMonth),
-		cronNum(s.Month),
-		cronNum(s.DayOfWeek),
+		cronVal(s.Minute),
+		cronVal(s.Hour),
+		cronVal(s.DayOfMonth),
+		cronVal(s.Month),
+		cronVal(s.DayOfWeek),
 	)
 }
 
-func cronNum(n *uint8) string {
-	if n == nil {
-		return "*"
-	} else {
-		return strconv.Itoa(int(*n))
-	}
+type ScheduleUnit struct {
+	IsExact bool
+	value *uint8
 }
 
-type ScheduleBuilder struct {
-	schedule Schedule
+func ExactUnit(x uint8) ScheduleUnit {
+	return ScheduleUnit{IsExact: true, value: &x}
 }
 
-func NewScheduleBuilder() ScheduleBuilder {
-	return ScheduleBuilder{}
+func RecurUnit(x uint8) ScheduleUnit {
+	return ScheduleUnit{value: &x}
 }
 
-func (s ScheduleBuilder) WithMinute(minute uint8) ScheduleBuilder {
-	s.schedule.Minute = &minute
-	return s
-}
-
-func (s ScheduleBuilder) WithHour(hour uint8) ScheduleBuilder {
-	s.schedule.Hour = &hour
-	return s
-}
-
-func (s ScheduleBuilder) WithDayOfMonth(dayOfMonth uint8) ScheduleBuilder {
-	s.schedule.DayOfMonth = &dayOfMonth
-	return s
-}
-
-func (s ScheduleBuilder) WithMonth(month uint8) ScheduleBuilder {
-	s.schedule.Month = &month
-	return s
-}
-
-func (s ScheduleBuilder) WithDayOfWeek(dayOfWeek uint8) ScheduleBuilder {
-	s.schedule.DayOfWeek = &dayOfWeek
-	return s
-}
-
-func (s ScheduleBuilder) Build() Schedule {
-	return s.schedule
+func NoneUnit() ScheduleUnit {
+	return ScheduleUnit{}
 }
