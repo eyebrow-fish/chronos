@@ -36,3 +36,23 @@ func TestSchedule_String(t *testing.T) {
 		})
 	}
 }
+
+func TestNewSchedule(t *testing.T) {
+	tests := []struct {
+		name    string
+		cron    string
+		want    *Schedule
+		wantErr bool
+	}{
+		{name: "any", cron: "* * * * *", want: &Schedule{}},
+		{name: "exact minute", cron: "10 * * * *", want: &Schedule{Minute: ExactUnit(10)}},
+		{name: "recurring minute", cron: "*/10 * * * *", want: &Schedule{Minute: RecurUnit(10)}},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			out, err := NewSchedule(test.cron)
+			assert.Equal(t, out, test.want)
+			assert.Equal(t, err != nil, test.wantErr)
+		})
+	}
+}
