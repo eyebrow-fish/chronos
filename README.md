@@ -1,8 +1,8 @@
 # chronos
 
-`chronos` is a [Golang](https://golang.org) library for developing schedules jobs which are even on a micro scale. The
-concept is similar to a cron job, in that a job will be trigger on a specified schedule, but there are major elements
-which define a chronos job:
+`chronos` is a [Golang](https://golang.org) library for developing scheduled jobs which may even be on the micro scale.
+The concept is similar to a cron job, in that a job will be trigger on a specified schedule, but there are major
+elements which distinguish a chronos job:
 
 - Schedules are more simple
 - Minimal overhead
@@ -10,8 +10,7 @@ which define a chronos job:
 
 # example
 
-In this case, maybe your self-esteem isn't doing so hot. Maybe a scheduled reminder will help? In this example, we
-create a new `Job` and schedule it to run hourly.
+In our example your self-esteem isn't at it's peak. Maybe an hourly reminder about how awesome you are will help!
 
 ```go
 package main
