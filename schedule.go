@@ -1,134 +1,45 @@
 package chronos
 
 import (
-	"fmt"
 	"strconv"
-	"strings"
+	"time"
 )
 
-type Schedule struct {
-	Minute,
-	Hour,
-	DayOfMonth,
-	Month,
-	DayOfWeek ScheduleUnit
+type schedule struct {
+	unit  ScheduleUnit
+	value int
 }
 
-func NewSchedule(cron string) (*Schedule, error) {
-	cronUnit := func(s string) (*ScheduleUnit, error) {
-		if s == "*" {
-			return &ScheduleUnit{}, nil
-		} else if strings.Contains(s, ",") {
-			var values []uint8
-			for _, v := range strings.Split(s, ",") {
-				if i, err := strconv.Atoi(v); err != nil {
-					return nil, err
-				} else {
-					values = append(values, uint8(i))
-				}
-			}
-			return &ScheduleUnit{UnitType: Multi, Value: values}, nil
-		} else {
-			var num string
-			var ut UnitType
-			if strings.Contains(s, "/") {
-				num = s[2:]
-				ut = Recur
-			} else {
-				num = s
-				ut = Exact
-			}
-			if v, err := strconv.Atoi(num); err != nil {
-				return nil, err
-			} else {
-				return &ScheduleUnit{UnitType: ut, Value: []uint8{uint8(v)}}, nil
-			}
-		}
+func (s schedule) nextDate(from time.Time) time.Time {
+	dur := time.Duration(s.value)
+	secNoise := -(time.Duration(from.Second())*time.Second + time.Duration(from.Nanosecond()))
+	minNoise := -(time.Duration(from.Minute()) * time.Minute)
+	hourNoise := -(time.Duration(from.Hour()) * time.Hour)
+	switch s.unit {
+	case minute:
+		return from.Add(dur*time.Minute + secNoise)
+	case hour:
+		return from.Add(dur*time.Hour + minNoise + secNoise)
+	case day:
+		return from.Add(hourNoise+minNoise+secNoise).
+			AddDate(0, 0, s.value)
+	case month:
+		return from.AddDate(0, s.value, -from.Day()+1).
+			Add(hourNoise + minNoise + secNoise)
+	case year:
+		return from.AddDate(s.value, int(-from.Month()+1), -from.Day()+1).
+			Add(hourNoise + minNoise + secNoise)
+	default:
+		panic("unknown unit: " + strconv.Itoa(int(s.unit)))
 	}
-	units := strings.Split(cron, " ")
-	minute, err := cronUnit(units[0])
-	if err != nil {
-		return nil, err
-	}
-	hour, err := cronUnit(units[1])
-	if err != nil {
-		return nil, err
-	}
-	dayOfMonth, err := cronUnit(units[2])
-	if err != nil {
-		return nil, err
-	}
-	month, err := cronUnit(units[3])
-	if err != nil {
-		return nil, err
-	}
-	dayOfWeek, err := cronUnit(units[4])
-	if err != nil {
-		return nil, err
-	}
-	return &Schedule{
-		Minute:     *minute,
-		Hour:       *hour,
-		DayOfMonth: *dayOfMonth,
-		Month:      *month,
-		DayOfWeek:  *dayOfWeek,
-	}, nil
 }
 
-func (s Schedule) String() string {
-	cronVal := func(u ScheduleUnit) string {
-		if u.Value == nil {
-			return "*"
-		} else {
-			switch u.UnitType {
-			case Multi:
-				var ss []string
-				for _, v := range u.Value {
-					ss = append(ss, strconv.Itoa(int(v)))
-				}
-				return strings.Join(ss, ",")
-			case Recur:
-				return "*/" + strconv.Itoa(int(u.Value[0]))
-			default:
-				return strconv.Itoa(int(u.Value[0]))
-			}
-		}
-	}
-	return fmt.Sprintf(
-		"%s %s %s %s %s",
-		cronVal(s.Minute),
-		cronVal(s.Hour),
-		cronVal(s.DayOfMonth),
-		cronVal(s.Month),
-		cronVal(s.DayOfWeek),
-	)
-}
-
-type ScheduleUnit struct {
-	UnitType UnitType
-	Value    []uint8
-}
-
-func ExactUnit(x uint8) ScheduleUnit {
-	return ScheduleUnit{UnitType: Exact, Value: []uint8{x}}
-}
-
-func RecurUnit(x uint8) ScheduleUnit {
-	return ScheduleUnit{UnitType: Recur, Value: []uint8{x}}
-}
-
-func MultiUnit(x ...uint8) ScheduleUnit {
-	return ScheduleUnit{UnitType: Multi, Value: x}
-}
-
-func NoneUnit() ScheduleUnit {
-	return ScheduleUnit{}
-}
-
-type UnitType uint8
+type ScheduleUnit int
 
 const (
-	Exact UnitType = iota
-	Recur
-	Multi
+	minute ScheduleUnit = iota
+	hour
+	day
+	month
+	year
 )
