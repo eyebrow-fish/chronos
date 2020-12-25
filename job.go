@@ -1,33 +1,38 @@
 package chronos
 
 import (
+	"context"
 	"time"
 )
 
 type Job struct {
 	schedule
-	Exec func()
+	Exec
 	Last time.Time
 }
 
-func NewJob(exec func()) Job {
+func NewJob(exec Exec) Job {
 	return JobFrom(time.Now(), exec)
 }
 
-func JobFrom(from time.Time, exec func()) Job {
+func JobFrom(from time.Time, exec Exec) Job {
 	return Job{Exec: exec, Last: from}
 }
 
 func (j Job) Run() {
-	for {
+	rootCtx := context.Background()
+	for i := 0; ; i++ {
 		ticker := time.NewTicker(time.Until(j.NextRun()))
 		select {
 		case <-ticker.C:
+			j.Last = time.Now()
+			ctx, cancel := context.WithDeadline(rootCtx, j.NextRun())
 			go func() {
-				j.Exec()
+				if err := j.Exec(ctx); err != nil {
+					cancel()
+				}
 				ticker.Stop()
 			}()
-			j.Last = time.Now()
 		}
 	}
 }
@@ -107,3 +112,5 @@ func (j Job) Yearly() Job {
 	j.schedule.value = 1
 	return j
 }
+
+type Exec func(context.Context) error

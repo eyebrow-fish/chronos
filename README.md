@@ -18,14 +18,16 @@ will help? In this example, we create a new `Job` and schedule it to run hourly.
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/eyebrow-fish/chronos"
 )
 
 func main() {
 	chronos.
-		NewJob(func() {
+		NewJob(func(ctx context.Context) error {
 			fmt.Println("You are awesome!")
+			return nil
 		}).
 		Hourly().
 		Run()
