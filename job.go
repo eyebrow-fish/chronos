@@ -6,8 +6,8 @@ import (
 
 type Job struct {
 	schedule
-	Exec     func()
-	Last     time.Time
+	Exec func()
+	Last time.Time
 }
 
 func NewJob(exec func()) Job {
@@ -20,9 +20,13 @@ func JobFrom(from time.Time, exec func()) Job {
 
 func (j Job) Run() {
 	for {
+		ticker := time.NewTicker(time.Until(j.NextRun()))
 		select {
-		case <-time.Tick(time.Until(j.NextRun())):
-			go j.Exec()
+		case <-ticker.C:
+			go func() {
+				j.Exec()
+				ticker.Stop()
+			}()
 			j.Last = time.Now()
 		}
 	}
