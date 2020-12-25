@@ -13,6 +13,11 @@ func TestJob_NextRun(t *testing.T) {
 		want time.Time
 	}{
 		{
+			name: "secondly",
+			job:  JobFrom(time.Date(2020, 12, 25, 0, 0, 0, 0, time.FixedZone("UTC+0", 0)), nil).Secondly(),
+			want: time.Date(2020, 12, 25, 0, 0, 1, 0, time.FixedZone("UTC+0", 0)),
+		},
+		{
 			name: "minutely",
 			job:  JobFrom(time.Date(2020, 12, 25, 0, 0, 0, 0, time.FixedZone("UTC+0", 0)), nil).Minutely(),
 			want: time.Date(2020, 12, 25, 0, 1, 0, 0, time.FixedZone("UTC+0", 0)),

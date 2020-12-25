@@ -32,6 +32,12 @@ func (j Job) NextRun() time.Time {
 	return j.schedule.nextDate(j.Last)
 }
 
+func (j Job) Seconds(seconds int) Job {
+	j.schedule.unit = second
+	j.schedule.value = seconds
+	return j
+}
+
 func (j Job) Minutes(minutes int) Job {
 	j.schedule.unit = minute
 	j.schedule.value = minutes
@@ -59,6 +65,12 @@ func (j Job) Months(months int) Job {
 func (j Job) Years(years int) Job {
 	j.schedule.unit = year
 	j.schedule.value = years
+	return j
+}
+
+func (j Job) Secondly() Job {
+	j.schedule.unit = second
+	j.schedule.value = 1
 	return j
 }
 
