@@ -24,7 +24,14 @@ import (
 //  }).Monthly().Run()
 type Job struct {
 	schedule
+	// Exec is the func that executed according to the schedule.
+	// Exec is always called in a goroutine.
 	Exec
+	// Last is the last time.Time the Exec func was invoked.
+	// This field helps determine when the next scheduled invocation
+	// should occur.
+	//
+	// To give a custom start time, use JobFrom().
 	Last time.Time
 }
 
