@@ -6,7 +6,7 @@ developing scheduled jobs using
 
 # development
 
-All `jobs` should be defined with a uniqie name and a schedule of your  	    
+All `jobs` should be defined with a unique name and a schedule of your  	    
 choosing. At the moment there is no further configuration for jobs, so
 all you simply need to do is:
 
