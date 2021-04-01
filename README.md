@@ -1,33 +1,37 @@
 # chronos
 
-`chronos` is a [Golang](https://golang.org) library for developing scheduled jobs which may even be on the micro scale.
-The concept is similar to a cron job, in that a job will be trigger on a specified schedule, but there are major
-elements which distinguish a chronos job:
+`chronos` is a [Golang](https://golang.org) "batteries included" library for
+developing scheduled jobs using
+[Cron Notation](https://en.wikipedia.org/wiki/Cron).
 
-- Schedules are more simple
-- Minimal overhead
-- `Down to the second` granularity
+# development
 
-# example
-
-In our example your self-esteem isn't at it's peak. Maybe an hourly reminder about how awesome you are will help!
+All `jobs` should be defined with a uniqie name and a schedule of your  	    
+choosing. At the moment there is no further configuration for jobs, so
+all you simply need to do is:
 
 ```go
-package main
+...
 
-import (
-	"context"
-	"fmt"
-	"github.com/eyebrow-fish/chronos"
+chronos.Job("Find Dog Photos", "*/1 * * * *", 
+	func(ctx context.Content) error { ... },
 )
 
-func main() {
-	chronos.
-		NewJob(func(ctx context.Context) error {
-			fmt.Println("You are awesome!")
-			return nil
-		}).
-		Hourly().
-		Run()
-}
+...
 ```
+
+Once all jobs are configured in code, the last thing to do is to run the
+`scheduler`. The scheduler manages the runtimes of all of the jobs' tasks.
+The following should be run after all definitions are configured because it
+blocks indefinitely.
+
+```go
+...
+
+chronos.Launch(":8080")
+
+...
+```
+
+Another import feature of the scheduler is that it also exposes health and
+statistics via HTTP. This is why we pass `":8080"` as a parameter to `Launch`.
