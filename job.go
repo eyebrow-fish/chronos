@@ -32,6 +32,7 @@ type cronUnitType uint8
 
 const (
 	every cronUnitType = iota
-	exact
-	divisable
+	listed
+	ranged
+	stepped
 )
