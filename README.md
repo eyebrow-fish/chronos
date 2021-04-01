@@ -13,7 +13,7 @@ all you simply need to do is:
 ```go
 ...
 
-chronos.Job("Find Dog Photos", "*/1 * * * *", 
+chronos.Job("Find Dog Photos", "* * * * *", 
 	func(ctx context.Content) error { ... },
 )
 
