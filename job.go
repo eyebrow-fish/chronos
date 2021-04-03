@@ -3,6 +3,8 @@ package chronos
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 )
 
 type JobFunc func(ctx context.Context) error
@@ -20,7 +22,34 @@ type cronSchedule struct {
 }
 
 func scheduleFromString(cron string) (*cronSchedule, error) {
-	return nil, errors.New("unimplemented")
+	cronUnitTokens := strings.Split(cron, " ")
+
+	var units []cronUnit
+	for _, token := range cronUnitTokens {
+		if unit, err := parseUnitToken(token); err == nil {
+			units = append(units, *unit)
+		} else {
+			return nil, err
+		}
+	}
+
+	schedule := cronSchedule{
+		units[0],
+		units[1],
+		units[2],
+		units[3],
+		units[4],
+	}
+
+	return &schedule, nil
+}
+
+func parseUnitToken(cronToken string) (*cronUnit, error) {
+	if cronToken == "*" {
+		return &cronUnit{}, nil
+	}
+
+	return nil, fmt.Errorf("unknown token: %s", cronToken)
 }
 
 type cronUnit struct {
