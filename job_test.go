@@ -28,6 +28,18 @@ func Test_scheduleFromString(t *testing.T) {
 			},
 			false,
 		},
+		{
+			"every hour on the tenth minute",
+			args{"10 * * * *"},
+			&cronSchedule{
+				minute:   cronUnit{listed, []uint8{10}},
+				hour:     cronUnit{},
+				monthDay: cronUnit{},
+				month:    cronUnit{},
+				weekDay:  cronUnit{},
+			},
+			false,
+		},
 		{"too many tokens", args{"* * * * * *"}, nil, true},
 	}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -52,14 +53,6 @@ func scheduleFromString(cron string) (*cronSchedule, error) {
 	return &schedule, nil
 }
 
-func parseUnitToken(cronToken string) (*cronUnit, error) {
-	if cronToken == "*" {
-		return &cronUnit{}, nil
-	}
-
-	return nil, fmt.Errorf("unknown token: %s", cronToken)
-}
-
 type cronUnit struct {
 	unitType cronUnitType
 	values   []uint8
@@ -73,3 +66,15 @@ const (
 	ranged
 	stepped
 )
+
+func parseUnitToken(cronToken string) (*cronUnit, error) {
+	if cronToken == "*" {
+		return &cronUnit{}, nil
+	}
+
+	if num, err := strconv.Atoi(cronToken); err == nil {
+		return &cronUnit{listed, []uint8{uint8(num)}}, nil
+	} else {
+		return nil, fmt.Errorf("unknown token: %s", cronToken)
+	}
+}
