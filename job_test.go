@@ -29,12 +29,24 @@ func Test_scheduleFromString(t *testing.T) {
 			false,
 		},
 		{
-			"every hour on the tenth minute",
+			"at minute 10",
 			args{"10 * * * *"},
 			&cronSchedule{
 				minute:   cronUnit{listed, []uint8{10}},
 				hour:     cronUnit{},
 				monthDay: cronUnit{},
+				month:    cronUnit{},
+				weekDay:  cronUnit{},
+			},
+			false,
+		},
+		{
+			"at minute 10 on day-of-month 10",
+			args{"10 * 10 * *"},
+			&cronSchedule{
+				minute:   cronUnit{listed, []uint8{10}},
+				hour:     cronUnit{},
+				monthDay: cronUnit{listed, []uint8{10}},
 				month:    cronUnit{},
 				weekDay:  cronUnit{},
 			},
