@@ -3,7 +3,6 @@ package chronos
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 )
@@ -72,9 +71,28 @@ func parseUnitToken(cronToken string) (*cronUnit, error) {
 		return &cronUnit{}, nil
 	}
 
-	if num, err := strconv.Atoi(cronToken); err == nil {
-		return &cronUnit{listed, []uint8{uint8(num)}}, nil
+	if strings.Contains(cronToken, ",") {
+		valueTokens := strings.Split(cronToken, ",")
+
+		var values []uint8
+		for _, valueToken := range valueTokens {
+			if num, err := strconv.Atoi(valueToken); err == nil {
+				values = append(values, uint8(num))
+			} else {
+				return nil, err
+			}
+		}
+
+		return &cronUnit{listed, values}, nil
+	} else if strings.Contains(cronToken, "-") {
+		return nil, errors.New("unimplemented")
+	} else if strings.Contains(cronToken, "/") {
+		return nil, errors.New("unimplemented")
 	} else {
-		return nil, fmt.Errorf("unknown token: %s", cronToken)
+		if num, err := strconv.Atoi(cronToken); err == nil {
+			return &cronUnit{listed, []uint8{uint8(num)}}, nil
+		} else {
+			return nil, err
+		}
 	}
 }
