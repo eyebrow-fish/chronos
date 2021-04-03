@@ -24,6 +24,14 @@ type cronSchedule struct {
 func scheduleFromString(cron string) (*cronSchedule, error) {
 	cronUnitTokens := strings.Split(cron, " ")
 
+	if tokenCount := len(cronUnitTokens); tokenCount != 5 {
+		if tokenCount > 5 {
+			return nil, errors.New("too many time unit tokens")
+		} else {
+			return nil, errors.New("too few time unit tokens")
+		}
+	}
+
 	var units []cronUnit
 	for _, token := range cronUnitTokens {
 		if unit, err := parseUnitToken(token); err == nil {

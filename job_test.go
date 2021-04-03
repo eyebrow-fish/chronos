@@ -28,6 +28,7 @@ func Test_scheduleFromString(t *testing.T) {
 			},
 			false,
 		},
+		{"too many tokens", args{"* * * * * *"}, nil, true},
 	}
 
 	for _, tt := range tests {
