@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type JobFunc func(ctx context.Context) error
@@ -51,6 +52,10 @@ func scheduleFromString(cron string) (*cronSchedule, error) {
 	}
 
 	return &schedule, nil
+}
+
+func (cs cronSchedule) nextTime(from time.Time) time.Time {
+	return from
 }
 
 type cronUnit struct {

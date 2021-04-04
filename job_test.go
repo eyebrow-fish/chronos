@@ -3,6 +3,7 @@ package chronos
 import (
 	"reflect"
 	"testing"
+	"time"
 )
 
 func Test_scheduleFromString(t *testing.T) {
@@ -122,6 +123,44 @@ func Test_scheduleFromString(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("scheduleFromString() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_cronSchedule_nextTime(t *testing.T) {
+	type fields struct {
+		minute   cronUnit
+		hour     cronUnit
+		monthDay cronUnit
+		month    cronUnit
+		weekDay  cronUnit
+	}
+
+	type args struct {
+		from time.Time
+	}
+
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   time.Time
+	}{
+		// TODO: Add test cases.
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cs := cronSchedule{
+				minute:   tt.fields.minute,
+				hour:     tt.fields.hour,
+				monthDay: tt.fields.monthDay,
+				month:    tt.fields.month,
+				weekDay:  tt.fields.weekDay,
+			}
+			if got := cs.nextTime(tt.args.from); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("cronSchedule.nextTime() = %v, want %v", got, tt.want)
 			}
 		})
 	}
