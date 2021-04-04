@@ -92,10 +92,25 @@ func Test_scheduleFromString(t *testing.T) {
 			false,
 		},
 
+		{
+			"at every 10th minutes",
+			args{"*/10 * * * *"},
+			&cronSchedule{
+				minute:   cronUnit{stepped, []uint8{10}},
+				hour:     cronUnit{},
+				monthDay: cronUnit{},
+				month:    cronUnit{},
+				weekDay:  cronUnit{},
+			},
+			false,
+		},
+
 		{"too many tokens", args{"* * * * * *"}, nil, true},
 		{"trailing comma", args{"1, * * * *"}, nil, true},
 		{"open ranged", args{"1- * * * *"}, nil, true},
 		{"excessive range", args{"5-10-15 * * * *"}, nil, true},
+		{"non-standard step", args{"1/10 * * * *"}, nil, true},
+		{"too many steps", args{"*/10/15 * * * *"}, nil, true},
 	}
 
 	for _, tt := range tests {
