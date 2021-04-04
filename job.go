@@ -3,6 +3,7 @@ package chronos
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -85,7 +86,22 @@ func parseUnitToken(cronToken string) (*cronUnit, error) {
 
 		return &cronUnit{listed, values}, nil
 	} else if strings.Contains(cronToken, "-") {
-		return nil, errors.New("unimplemented")
+		valueTokens := strings.Split(cronToken, "-")
+
+		if len(valueTokens) != 2 {
+			return nil, fmt.Errorf("expected lower and upper bound values only, got %d value(s)", len(valueTokens))
+		}
+
+		var values []uint8
+		for _, valueToken := range valueTokens {
+			if num, err := strconv.Atoi(valueToken); err == nil {
+				values = append(values, uint8(num))
+			} else {
+				return nil, err
+			}
+		}
+
+		return &cronUnit{ranged, values}, nil
 	} else if strings.Contains(cronToken, "/") {
 		return nil, errors.New("unimplemented")
 	} else {
