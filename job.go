@@ -75,7 +75,17 @@ func (cs cronSchedule) nextTime(from time.Time) time.Time {
 			to = to.Add(time.Hour + delta)
 		}
 	} else if cs.minute.unitType == ranged {
+		current := to.Minute()
 
+		lowerDelta := time.Duration(cs.minute.values[0]-current) * time.Minute
+
+		if lowerDelta > 0 {
+			to = to.Add(lowerDelta)
+		} else if to.Minute() < cs.minute.values[1] {
+			to = to.Add(time.Minute)
+		} else {
+			to = to.Add(time.Hour + lowerDelta)
+		}
 	} else if cs.minute.unitType == stepped {
 
 	}
