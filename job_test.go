@@ -34,7 +34,7 @@ func Test_scheduleFromString(t *testing.T) {
 			"at minute 10",
 			args{"10 * * * *"},
 			&cronSchedule{
-				minute:   cronUnit{listed, []uint8{10}},
+				minute:   cronUnit{listed, []int{10}},
 				hour:     cronUnit{},
 				monthDay: cronUnit{},
 				month:    cronUnit{},
@@ -46,9 +46,9 @@ func Test_scheduleFromString(t *testing.T) {
 			"at minute 10 on day-of-month 10",
 			args{"10 * 10 * *"},
 			&cronSchedule{
-				minute:   cronUnit{listed, []uint8{10}},
+				minute:   cronUnit{listed, []int{10}},
 				hour:     cronUnit{},
-				monthDay: cronUnit{listed, []uint8{10}},
+				monthDay: cronUnit{listed, []int{10}},
 				month:    cronUnit{},
 				weekDay:  cronUnit{},
 			},
@@ -59,7 +59,7 @@ func Test_scheduleFromString(t *testing.T) {
 			"at minute 10, 15, and 20",
 			args{"10,15,20 * * * *"},
 			&cronSchedule{
-				minute:   cronUnit{listed, []uint8{10, 15, 20}},
+				minute:   cronUnit{listed, []int{10, 15, 20}},
 				hour:     cronUnit{},
 				monthDay: cronUnit{},
 				month:    cronUnit{},
@@ -71,11 +71,23 @@ func Test_scheduleFromString(t *testing.T) {
 			"at minute 10, 15, and 20 on day-of-week Monday and Tuesday",
 			args{"10,15,20 * * * 1,2"},
 			&cronSchedule{
-				minute:   cronUnit{listed, []uint8{10, 15, 20}},
+				minute:   cronUnit{listed, []int{10, 15, 20}},
 				hour:     cronUnit{},
 				monthDay: cronUnit{},
 				month:    cronUnit{},
-				weekDay:  cronUnit{listed, []uint8{1, 2}},
+				weekDay:  cronUnit{listed, []int{1, 2}},
+			},
+			false,
+		},
+		{
+			"at minute 1, 59, and 9 (sorted)",
+			args{"1,59,9 * * * *"},
+			&cronSchedule{
+				minute:   cronUnit{listed, []int{1, 9, 59}},
+				hour:     cronUnit{},
+				monthDay: cronUnit{},
+				month:    cronUnit{},
+				weekDay:  cronUnit{},
 			},
 			false,
 		},
@@ -84,7 +96,7 @@ func Test_scheduleFromString(t *testing.T) {
 			"at every minute 5 through 10",
 			args{"5-10 * * * *"},
 			&cronSchedule{
-				minute:   cronUnit{ranged, []uint8{5, 10}},
+				minute:   cronUnit{ranged, []int{5, 10}},
 				hour:     cronUnit{},
 				monthDay: cronUnit{},
 				month:    cronUnit{},
@@ -97,7 +109,7 @@ func Test_scheduleFromString(t *testing.T) {
 			"at every 10th minutes",
 			args{"*/10 * * * *"},
 			&cronSchedule{
-				minute:   cronUnit{stepped, []uint8{10}},
+				minute:   cronUnit{stepped, []int{10}},
 				hour:     cronUnit{},
 				monthDay: cronUnit{},
 				month:    cronUnit{},
@@ -157,6 +169,15 @@ func Test_cronSchedule_nextTime(t *testing.T) {
 			"every minute rounded",
 			fields{},
 			args{time.Date(1970, time.January, 1, 1, 0, 30, 0, time.UTC)},
+			time.Date(1970, time.January, 1, 1, 2, 0, 0, time.UTC),
+		},
+
+		{
+			"at minutes 2, 5, and 10",
+			fields{
+				minute: cronUnit{listed, []int{2, 5, 10}},
+			},
+			args{time.Date(1970, time.January, 1, 1, 0, 0, 0, time.UTC)},
 			time.Date(1970, time.January, 1, 1, 2, 0, 0, time.UTC),
 		},
 	}

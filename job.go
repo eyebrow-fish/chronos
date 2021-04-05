@@ -3,8 +3,6 @@ package chronos
 import (
 	"context"
 	"errors"
-	"fmt"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -59,6 +57,27 @@ func (cs cronSchedule) nextTime(from time.Time) time.Time {
 
 	if cs.minute.unitType == every {
 		to = to.Add(time.Minute)
+	} else if cs.minute.unitType == listed {
+		next := cs.minute.values[0]
+		for _, i := range cs.minute.values {
+			if to.Minute() < i {
+				next = i
+				break
+			}
+		}
+
+		current := to.Minute()
+		delta := time.Duration(next-current) * time.Minute
+
+		if delta > 0 {
+			to = to.Add(delta)
+		} else {
+			to = to.Add(time.Hour + time.Minute)
+		}
+	} else if cs.minute.unitType == ranged {
+
+	} else if cs.minute.unitType == stepped {
+
 	}
 
 	return to
@@ -66,7 +85,7 @@ func (cs cronSchedule) nextTime(from time.Time) time.Time {
 
 type cronUnit struct {
 	unitType cronUnitType
-	values   []uint8
+	values   []int
 }
 
 type cronUnitType uint8
@@ -77,63 +96,3 @@ const (
 	ranged
 	stepped
 )
-
-func parseUnitToken(cronToken string) (*cronUnit, error) {
-	if cronToken == "*" {
-		return &cronUnit{}, nil
-	}
-
-	if strings.Contains(cronToken, ",") {
-		valueTokens := strings.Split(cronToken, ",")
-
-		var values []uint8
-		for _, valueToken := range valueTokens {
-			if num, err := strconv.Atoi(valueToken); err == nil {
-				values = append(values, uint8(num))
-			} else {
-				return nil, err
-			}
-		}
-
-		return &cronUnit{listed, values}, nil
-	} else if strings.Contains(cronToken, "-") {
-		valueTokens := strings.Split(cronToken, "-")
-
-		if len(valueTokens) != 2 {
-			return nil, fmt.Errorf("unexpected number of upper and lower bounds for range: %d", len(valueTokens))
-		}
-
-		var values []uint8
-		for _, valueToken := range valueTokens {
-			if num, err := strconv.Atoi(valueToken); err == nil {
-				values = append(values, uint8(num))
-			} else {
-				return nil, err
-			}
-		}
-
-		return &cronUnit{ranged, values}, nil
-	} else if strings.Contains(cronToken, "/") {
-		valueTokens := strings.Split(cronToken, "/")
-
-		if len(valueTokens) != 2 {
-			return nil, fmt.Errorf("unexpected number of values for step value: %d", len(valueTokens))
-		}
-
-		if valueTokens[0] != "*" {
-			return nil, fmt.Errorf("expected wildcard [*] got [%s]", valueTokens[0])
-		}
-
-		if num, err := strconv.Atoi(valueTokens[1]); err == nil {
-			return &cronUnit{stepped, []uint8{uint8(num)}}, nil
-		} else {
-			return nil, err
-		}
-	} else {
-		if num, err := strconv.Atoi(cronToken); err == nil {
-			return &cronUnit{listed, []uint8{uint8(num)}}, nil
-		} else {
-			return nil, err
-		}
-	}
-}
