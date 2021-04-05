@@ -147,7 +147,18 @@ func Test_cronSchedule_nextTime(t *testing.T) {
 		args   args
 		want   time.Time
 	}{
-		// TODO: Add test cases.
+		{
+			"every minute",
+			fields{},
+			args{time.Date(1970, time.January, 1, 1, 0, 0, 0, time.UTC)},
+			time.Date(1970, time.January, 1, 1, 1, 0, 0, time.UTC),
+		},
+		{
+			"every minute rounded",
+			fields{},
+			args{time.Date(1970, time.January, 1, 1, 0, 30, 0, time.UTC)},
+			time.Date(1970, time.January, 1, 1, 2, 0, 0, time.UTC),
+		},
 	}
 
 	for _, tt := range tests {

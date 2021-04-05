@@ -55,7 +55,13 @@ func scheduleFromString(cron string) (*cronSchedule, error) {
 }
 
 func (cs cronSchedule) nextTime(from time.Time) time.Time {
-	return from
+	to := from.Round(time.Minute)
+
+	if cs.minute.unitType == every {
+		to = to.Add(time.Minute)
+	}
+
+	return to
 }
 
 type cronUnit struct {
