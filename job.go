@@ -72,7 +72,7 @@ func (cs cronSchedule) nextTime(from time.Time) time.Time {
 		if delta > 0 {
 			to = to.Add(delta)
 		} else {
-			to = to.Add(time.Hour + time.Minute)
+			to = to.Add(time.Hour + delta)
 		}
 	} else if cs.minute.unitType == ranged {
 

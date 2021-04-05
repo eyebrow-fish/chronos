@@ -180,6 +180,14 @@ func Test_cronSchedule_nextTime(t *testing.T) {
 			args{time.Date(1970, time.January, 1, 1, 0, 0, 0, time.UTC)},
 			time.Date(1970, time.January, 1, 1, 2, 0, 0, time.UTC),
 		},
+		{
+			"at minutes 2, 5, and 10 (around)",
+			fields{
+				minute: cronUnit{listed, []int{2, 5, 10}},
+			},
+			args{time.Date(1970, time.January, 1, 1, 40, 0, 0, time.UTC)},
+			time.Date(1970, time.January, 1, 2, 2, 0, 0, time.UTC),
+		},
 	}
 
 	for _, tt := range tests {
