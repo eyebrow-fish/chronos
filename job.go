@@ -54,14 +54,24 @@ func scheduleFromString(cron string) (*cronSchedule, error) {
 }
 
 func (cs cronSchedule) nextTime(from time.Time) time.Time {
-	to := from.Round(time.Minute)
+	rounded := from.Round(time.Minute)
 
-	switch cs.minute.unitType {
-	case every:
-		to = to.Add(time.Minute)
+	if cs.minute.unitType == every {
+		 rounded = rounded.Add(time.Minute)
+	}
+
+	toMinute := adjustForUnit(rounded, cs.minute)
+
+	return toMinute
+}
+
+func adjustForUnit(from time.Time, unit cronUnit) time.Time {
+	to := from
+
+	switch unit.unitType {
 	case listed:
-		next := cs.minute.values[0]
-		for _, i := range cs.minute.values {
+		next := unit.values[0]
+		for _, i := range unit.values {
 			if to.Minute() < i {
 				next = i
 				break
@@ -79,17 +89,17 @@ func (cs cronSchedule) nextTime(from time.Time) time.Time {
 	case ranged:
 		current := to.Minute()
 
-		lowerDelta := time.Duration(cs.minute.values[0]-current) * time.Minute
+		lowerDelta := time.Duration(unit.values[0]-current) * time.Minute
 
 		if lowerDelta > 0 {
 			to = to.Add(lowerDelta)
-		} else if to.Minute() < cs.minute.values[1] {
+		} else if to.Minute() < unit.values[1] {
 			to = to.Add(time.Minute)
 		} else {
 			to = to.Add(time.Hour + lowerDelta)
 		}
 	case stepped:
-		step := cs.minute.values[0]
+		step := unit.values[0]
 
 		until := step - to.Minute()%step
 		if until == 0 {
