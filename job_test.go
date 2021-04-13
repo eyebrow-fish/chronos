@@ -246,6 +246,24 @@ func Test_cronSchedule_nextTime(t *testing.T) {
 			args{time.Date(1970, time.January, 1, 1, 55, 0, 0, time.UTC)},
 			time.Date(1970, time.January, 1, 2, 0, 0, 0, time.UTC),
 		},
+
+		{
+			"every minute for the 11th hour",
+			fields{
+				hour: cronUnit{listed, []int{11}},
+			},
+			args{time.Date(1970, time.January, 1, 1, 0, 0, 0, time.UTC)},
+			time.Date(1970, time.January, 1, 11, 0, 0, 0, time.UTC),
+		},
+		{
+			"at every 10th minute on every 10th hour",
+			fields{
+				minute: cronUnit{stepped, []int{10}},
+				hour: cronUnit{stepped, []int{10}},
+			},
+			args{time.Date(1970, time.January, 1, 1, 0, 0, 0, time.UTC)},
+			time.Date(1970, time.January, 1, 10, 10, 0, 0, time.UTC),
+		},
 	}
 
 	for _, tt := range tests {

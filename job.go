@@ -10,7 +10,7 @@ import (
 type JobFunc func(ctx context.Context) error
 
 func Job(name, cron string, f JobFunc) error {
-	return errors.New("unimplemeneted")
+	return errors.New("unimplemented")
 }
 
 type cronSchedule struct {
@@ -56,56 +56,55 @@ func scheduleFromString(cron string) (*cronSchedule, error) {
 func (cs cronSchedule) nextTime(from time.Time) time.Time {
 	rounded := from.Round(time.Minute)
 
-	if cs.minute.unitType == every {
-		 rounded = rounded.Add(time.Minute)
+	toMinute := adjustForUnit(rounded, cs.minute, rounded.Minute(), time.Minute, time.Hour)
+	toHour := adjustForUnit(toMinute, cs.hour, toMinute.Hour(), time.Hour, time.Hour * 24)
+
+	bumped := toHour
+	if cs.minute.unitType == every && bumped.Equal(rounded) {
+		bumped = rounded.Add(time.Minute)
 	}
 
-	toMinute := adjustForUnit(rounded, cs.minute)
-
-	return toMinute
+	return bumped
 }
 
-func adjustForUnit(from time.Time, unit cronUnit) time.Time {
+func adjustForUnit(from time.Time, unit cronUnit, fromValue int, timeUnit, greaterTimeUnit time.Duration) time.Time {
 	to := from
 
 	switch unit.unitType {
 	case listed:
 		next := unit.values[0]
 		for _, i := range unit.values {
-			if to.Minute() < i {
+			if fromValue < i {
 				next = i
 				break
 			}
 		}
 
-		current := to.Minute()
-		delta := time.Duration(next-current) * time.Minute
+		delta := time.Duration(next-fromValue) * timeUnit
 
 		if delta > 0 {
 			to = to.Add(delta)
 		} else {
-			to = to.Add(time.Hour + delta)
+			to = to.Add(greaterTimeUnit + delta)
 		}
 	case ranged:
-		current := to.Minute()
-
-		lowerDelta := time.Duration(unit.values[0]-current) * time.Minute
+		lowerDelta := time.Duration(unit.values[0]-fromValue) * timeUnit
 
 		if lowerDelta > 0 {
 			to = to.Add(lowerDelta)
-		} else if to.Minute() < unit.values[1] {
-			to = to.Add(time.Minute)
+		} else if fromValue < unit.values[1] {
+			to = to.Add(timeUnit)
 		} else {
-			to = to.Add(time.Hour + lowerDelta)
+			to = to.Add(greaterTimeUnit + lowerDelta)
 		}
 	case stepped:
 		step := unit.values[0]
 
-		until := step - to.Minute()%step
+		until := step - fromValue%step
 		if until == 0 {
-			to = to.Add(time.Duration(step) * time.Minute)
+			to = to.Add(time.Duration(step) * timeUnit)
 		} else {
-			to = to.Add(time.Duration(until) * time.Minute)
+			to = to.Add(time.Duration(until) * timeUnit)
 		}
 	}
 
