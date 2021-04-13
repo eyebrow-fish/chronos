@@ -41,6 +41,7 @@ func scheduleFromString(cron string) (*cronSchedule, error) {
 		}
 	}
 
+	//goland:noinspection GoNilness
 	schedule := cronSchedule{
 		units[0],
 		units[1],
@@ -87,7 +88,14 @@ func (cs cronSchedule) nextTime(from time.Time) time.Time {
 			to = to.Add(time.Hour + lowerDelta)
 		}
 	} else if cs.minute.unitType == stepped {
+		step := cs.minute.values[0]
 
+		until := step - to.Minute()%step
+		if until == 0 {
+			to = to.Add(time.Duration(step) * time.Minute)
+		} else {
+			to = to.Add(time.Duration(until) * time.Minute)
+		}
 	}
 
 	return to
