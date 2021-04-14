@@ -1,5 +1,7 @@
 # chronos
 
+## Just for fun, not in a fully working state
+
 `chronos` is a [Golang](https://golang.org) "batteries included" library for
 developing scheduled jobs using
 [Cron Notation](https://en.wikipedia.org/wiki/Cron).
